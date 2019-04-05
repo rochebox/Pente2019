@@ -177,6 +177,21 @@ public class PenteBoardSquare {
         yLoc = newY;
     }
     
+    //this is used with clickCheck in GameBoard to 
+    //see if the x,y from a click is in the square.
+    public boolean isClicked(int clickX, int clickY) {
+        boolean didYouClickMe = false;
+        
+        if(  xLoc < clickX && clickX < xLoc + sWidth) {
+            if(  yLoc < clickY && clickY < yLoc + sHeight) {
+                didYouClickMe = true;
+                
+            }
+            
+        } 
+       return didYouClickMe; 
+    }
+    
     
     
     
