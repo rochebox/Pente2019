@@ -6,6 +6,8 @@ import java.awt.geom.Line2D;
 
 public class PenteBoardSquare {
     //data
+    
+    //
     private int xLoc, yLoc;
     private int sWidth, sHeight;
     
@@ -157,9 +159,12 @@ public class PenteBoardSquare {
         } else {
             sState = newState;
         }
-    
     }
     
+    //Accessor method to get state for board
+    public int getState() {
+        return sState;
+    }
     
     public void setWidth(int newW) {
         sWidth = newW;
