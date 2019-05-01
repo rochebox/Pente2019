@@ -32,7 +32,9 @@ public class PenteBoardSquare {
     
     private Color lightStoneColor2 = new Color(242, 240, 222);
     //need a white stone color
-    boolean isInner = false;
+    private boolean isInner = false;
+    private boolean isWinningSquare = false;
+    
     
     //constructor
     public PenteBoardSquare(int x, int y, int w, int h) {
@@ -144,7 +146,20 @@ public class PenteBoardSquare {
             g.fillOval(xLoc + 8, yLoc + 6, sWidth-12, sHeight-10);
         }
         
-    }
+        if(isWinningSquare == true) {
+            
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setStroke(new BasicStroke(2));
+           
+            g2.setColor(Color.RED);
+            
+            g2.drawOval(xLoc + 2, yLoc + 2, sWidth -4, sHeight -4);
+            
+            g2.setStroke(new BasicStroke(1));
+            
+        }
+        
+    }  //bottom of drawMe
     
     
     //methods
@@ -195,6 +210,13 @@ public class PenteBoardSquare {
             
         } 
        return didYouClickMe; 
+    }
+    
+    
+    
+    //add this new method
+    public void setWinningSquare(boolean newState) {
+        isWinningSquare = newState;
     }
     
     

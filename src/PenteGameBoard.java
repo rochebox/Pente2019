@@ -17,6 +17,8 @@ public class PenteGameBoard extends JPanel implements MouseListener {
     public static final int INNER_END = 11;
     public static final int PLAYER1_TURN = 1;
     public static final int PLAYER2_TURN = -1;
+    public static final int MAX_CAPTURES = 5;
+    public static final int SLEEP_TIME = 200;
     
     private int bWidth, bHeight;
     
@@ -30,6 +32,14 @@ public class PenteGameBoard extends JPanel implements MouseListener {
     private boolean player2IsComputer = false;
     private String p1Name, p2Name;
     private boolean darkStoneMove2Taken = false;
+    
+    //we start the game like this...
+    private boolean gameOver = false;  
+    
+    //Variables for Computer Game Players
+    private ComputerMoveGenerator p1ComputerPlayer = null;
+    private ComputerMoveGenerator p2ComputerPlayer = null;
+    
     
     
     
@@ -104,8 +114,12 @@ public class PenteGameBoard extends JPanel implements MouseListener {
         for(int row = 0; row < NUM_SQUARES_SIDE; row++ ) { 
             for(int col = 0; col < NUM_SQUARES_SIDE; col++) {
                 gameBoard[row][col].setState(EMPTY);
+                gameBoard[row][col].setWinningSquare(false);
             }
-        }  
+        } 
+        //
+        //this.paintImmediately(0, 0,  bWidth, bHeight);   // we want this
+        repaint();
         
     }
     
@@ -117,29 +131,17 @@ public class PenteGameBoard extends JPanel implements MouseListener {
         //No matter what, reset captures
         p1Captures = 0;
         p2Captures = 0;
-        
-        //resetBoard(); 
-        //ImageIcon i = createImageIcon("pentePic.png");
-        
-        //UIManager.put("OptionPane.background", Color.WHITE);
-        //UIManager.getLookAndFeelDefaults().put("Panel.background", Color.WHITE);
-
-//        if(firstGame) {
-//        JOptionPane myPane = new JOptionPane();
-//        //myPane.setIcon(i);
-//        p1Name = myPane.showInputDialog("Name of player 1 (or type 'c' for computer");
-//        myPane.setLocation(bWidth, bHeight/2);
-//        myPane.setVisible(true);
-//        }
+        gameOver = false;
         
         
-        
-        
-      
+ 
         if(firstGame) {
              p1Name = JOptionPane.showInputDialog("Name of player 1 (or type 'c' for computer");
-             if(p1Name != null && (p1Name.equals('c') || p1Name.equals("computer") || p1Name.equals("comp"))) {
+             if(p1Name != null && (p1Name.toLowerCase().equals("c") || p1Name.toLowerCase().equals("computer") || 
+                     p1Name.toLowerCase().equals("comp"))) {
                 player1IsComputer = true;
+                System.out.println("PLAYER 1 is a Computer");
+                p1ComputerPlayer = new ComputerMoveGenerator(this, BLACKSTONE);
              }
         }
         
@@ -149,8 +151,11 @@ public class PenteGameBoard extends JPanel implements MouseListener {
         
       if(firstGame) {
             p2Name = JOptionPane.showInputDialog("Name of player 2 (or type 'c' for computer");
-            if(p1Name != null && (p2Name.equals('c') || p2Name.equals("computer") || p2Name.equals("comp"))) {
+            if(p2Name != null && (p2Name.toLowerCase().equals("c") || p2Name.toLowerCase().equals("computer") || 
+                    p2Name.toLowerCase().equals("comp"))) {
                 player2IsComputer = true;
+                System.out.println("PLAYER 2 is a computer");
+                p2ComputerPlayer = new ComputerMoveGenerator(this, WHITESTONE);
             }
       }
             myScoreBoard.setName(p2Name, WHITESTONE);
@@ -164,8 +169,12 @@ public class PenteGameBoard extends JPanel implements MouseListener {
             this.gameBoard[NUM_SQUARES_SIDE/2][NUM_SQUARES_SIDE/2].setState(BLACKSTONE);
             darkStoneMove2Taken = false;
             changePlayerTurn();
+           
+            checkForComputerMove(playerTurn);
        
             this.repaint();
+            
+     
        
     }
     
@@ -174,38 +183,186 @@ public class PenteGameBoard extends JPanel implements MouseListener {
         playerTurn *= -1;
         System.out.println("Its now the turn of: " + playerTurn);
         myScoreBoard.setPlayerTurn(playerTurn);
+       
+    }
+    
+    public boolean fiveInARow(int whichPlayer) {
+        boolean isFive = false;
+        System.out.println("In top of fiveInARow and isFive is " + isFive);
+        
+        //we will write this ...now before lunch
+        //FOR EVERY SQUARE ON THE BOARD....
+        for(int row = 0; row < NUM_SQUARES_SIDE; row++ ) { 
+            for(int col = 0; col < NUM_SQUARES_SIDE; col++) {
+                System.out.println("In fiveInRow, looking at [" + row + ", " + col + "]");
+                for(int rL = -1; rL <= 1; rL++) { 
+                    for(int uD = -1; uD <= 1; uD++) {
+                        if(fiveCheck( row,  col, whichPlayer,   rL /* row */,  uD /*col */)) {
+                            System.out.println("In fiveInRow, found a 5 at [" + row + ", " + col + "]");
+                            System.out.println("FiveCheck is returning  true");
+                            isFive = true;
+                        }
+                    }
+                }
+            }
+        }   
+        System.out.println("In bottom of fiveInARow and isFive is " + isFive);
+        return isFive;
+    }
+    
+     
+    public boolean fiveCheck( int r, int c, int pt, int upDown, int rightLeft ) {
+        
+       
+   
+        
+        try {
+            boolean found5 = false;  //like cap has to be a different variable
+            //THIS CODE IS WRONG BUT YOU CAN CORRECT IT
+            if(!(upDown == 0 && rightLeft == 0)) 
+            {
+                if( gameBoard[r][c].getState() == pt) 
+                {                //1st
+                    if(gameBoard[r+upDown][c+rightLeft].getState() == pt) //2nd
+                    {             
+                        if(gameBoard[r + (upDown*2)][c+(rightLeft*2)].getState() == pt)
+                        {  
+                            if(gameBoard[r + (upDown*3)][c+ (rightLeft*3)].getState() == pt) 
+                            {
+                                if(gameBoard[r + (upDown*4)][c+ (rightLeft*4)].getState() == pt) 
+                                {
+                                    System.out.println("IT'S a WIN" );
+                                    
+                                    found5 = true;
+                                    gameBoard[r][c].setWinningSquare(true);
+                                    gameBoard[r+upDown][c+rightLeft].setWinningSquare(true);
+                                    gameBoard[r + (upDown*2)][c+(rightLeft*2)].setWinningSquare(true);
+                                    gameBoard[r + (upDown*3)][c+ (rightLeft*3)].setWinningSquare(true);
+                                    gameBoard[r + (upDown*4)][c+ (rightLeft*4)].setWinningSquare(true);
+                                }
+                            } 
+                        }
+                    }
+                }
+            }
+            
+            return found5; 
+            
+        }  catch (ArrayIndexOutOfBoundsException e) {
+            //System.out.println("You have an error in five check" +   e.toString());
+            return false;
+        }   
     }
     
     
-    
-    
+    public void checkForWin(int whichPlayer) {
+        System.out.println("At top of check for win for " + whichPlayer);
+        //for player 1
+        if(whichPlayer == this.PLAYER1_TURN) {
+            if(this.p1Captures >= MAX_CAPTURES) {
+                //we win!!
+                JOptionPane.showMessageDialog(null, "Congratulations: " + p1Name +  " Wins!!" +
+                        "\n with " + p1Captures + " captures");
+                gameOver = true;
+                
+            } else {
+                if(fiveInARow(whichPlayer)) {
+                    System.out.println("Back from  fiveInARow(); for P1 and its true");
+                    JOptionPane.showMessageDialog(null, "Congratulations: " 
+                            + p1Name + " Wins!! with 5 in a row");
+                    gameOver = true;
+                } 
+            }
+        } else {  //for player 2
+            if(this.p2Captures >= MAX_CAPTURES) {
+                //we win!!
+                JOptionPane.showMessageDialog(null, "Congratulations: " + p2Name +  " Wins!!" +
+                        "\n with " + p2Captures + " captures");
+                gameOver = true;  
+            } else {
+                if(fiveInARow(whichPlayer)) {
+                    System.out.println("Back from  fiveInARow(); for P2 and its true");
+                    JOptionPane.showMessageDialog(null, "Congratulations: " 
+                            + p2Name + " Wins!! with 5 in a row");
+                    gameOver = true;
+                }
+            } 
+        }
+    }
+     
    
     //This checks on the board which square you have clicked on
     public void checkClick(int clickX, int clickY) {
         
-        for(int row = 0; row < NUM_SQUARES_SIDE; row++ ) { 
-            for(int col = 0; col < NUM_SQUARES_SIDE; col++) {
-                
-                boolean squareClicked = gameBoard[row][col].isClicked(clickX, clickY);
-                if(squareClicked) {
-                    //System.out.println("You clicked the square at [" + row + ", " + col + "]");    
-                    if(gameBoard[row][col].getState() == EMPTY) {
-                        //one more check to see about the second dark move
-                        if(!darkSquareProblem(row, col)) {
-                            gameBoard[row][col].setState(playerTurn);
-                            checkForCaptures(row, col, playerTurn);
-                            this.repaint();
-                            this.changePlayerTurn();
-                        } else {
-                           JOptionPane.showMessageDialog(null, "Second dark stone move has to be outside of the light square");    
-                        }
-                    } else {
-                        JOptionPane.showMessageDialog(null, "This square is taken, click on another");
-                    }
+        if(!gameOver) {
+            for(int row = 0; row < NUM_SQUARES_SIDE; row++ ) { 
+                for(int col = 0; col < NUM_SQUARES_SIDE; col++) {
                     
+                    boolean squareClicked = gameBoard[row][col].isClicked(clickX, clickY);
+                    if(squareClicked) {
+                        //System.out.println("You clicked the square at [" + row + ", " + col + "]");    
+                        if(gameBoard[row][col].getState() == EMPTY) {
+                            //one more check to see about the second dark move
+                            if(!darkSquareProblem(row, col)) {
+                                gameBoard[row][col].setState(playerTurn);
+                                this.paintImmediately(0,0, bWidth, bHeight);
+                                checkForAllCaptures(row, col, playerTurn);
+                                this.repaint();
+                                /*  stops the wait on the human move */
+                                //this.paintImmediately(0,0, bWidth, bHeight);
+                                checkForWin(playerTurn);
+                                this.changePlayerTurn();
+                                checkForComputerMove(playerTurn);
+                            } else {
+                               JOptionPane.showMessageDialog(null, "Second dark stone move has to be outside of the light square");    
+                            }
+                        } else {
+                            JOptionPane.showMessageDialog(null, "This square is taken, click on another");
+                        }
+                        
+                    }
                 }
+            }   
+        }
+    }
+    
+    public void checkForComputerMove(int whichPlayer) {
+        
+        if(whichPlayer == this.PLAYER1_TURN && this.player1IsComputer) {
+            System.out.println("PLAYER 1 is TAKING ITS TURN.....");
+            int[] nextMove = this.p1ComputerPlayer.getComputeMove();
+            int newR = nextMove[0];
+            int newC = nextMove[1];
+            gameBoard[newR][newC].setState(playerTurn);
+            this.paintImmediately(0, 0, bWidth,  bHeight);  //added *****
+            //this.repaint();
+            checkForAllCaptures(newR, newC, playerTurn);
+            this.repaint();
+            checkForWin(playerTurn);
+            if(!gameOver) {
+                this.changePlayerTurn();
+                checkForComputerMove(playerTurn);
             }
-        }   
+            
+        } else if (whichPlayer == this.PLAYER2_TURN && this.player2IsComputer) {
+            System.out.println("PLAYER 2 is TAKING ITS TURN.....");
+            int[] nextMove = this.p2ComputerPlayer.getComputeMove();
+            int newR = nextMove[0];
+            int newC = nextMove[1];
+            gameBoard[newR][newC].setState(playerTurn);
+            this.paintImmediately(0, 0, bWidth,  bHeight);  //added *****
+            //this.repaint();
+            checkForAllCaptures(newR, newC, playerTurn);
+            //this.repaint();
+            checkForWin(playerTurn);
+            if(!gameOver) {
+                this.changePlayerTurn();
+                checkForComputerMove(playerTurn);
+            }
+        }
+        this.repaint();
+        
+      
     }
     
    /*  This method checks for the dark stone 2nd move issue
@@ -235,7 +392,7 @@ public class PenteGameBoard extends JPanel implements MouseListener {
     }
     
     //This is a big routine to check for captures
-    public void checkForCaptures(int r, int c, int pt) {
+    public void checkForAllCaptures(int r, int c, int pt) {
         
        boolean didCapture;
        //Horizontal Checks
@@ -244,17 +401,6 @@ public class PenteGameBoard extends JPanel implements MouseListener {
                didCapture = checkForCaptures( r,  c,  pt,   rL /* row */,  uD /*col */); 
            }
        }
-       
-//       
-//       didCapture = checkForCaptures( r,  c,  pt,   0 /* row */,  1 /*col */);
-//       didCapture = checkForCaptures( r,  c,  pt,   0 /*row */,  -1 /*col*/);
-//       didCapture = checkForCaptures( r,  c,  pt,   1 /* row */,  0 /*col */);
-//       didCapture = checkForCaptures( r,  c,  pt,  -1 /*row */,  0 /*col*/);     
-//       didCapture = checkForCaptures( r,  c,  pt,   1 /* row */,  -1 /*col */);     
-//       didCapture = checkForCaptures( r,  c,  pt,  -1 /* row */,  1 /*col */);
-//       didCapture = checkForCaptures( r,  c,  pt,  -1 /* row */,  -1 /*col */);
-//       didCapture = checkForCaptures( r,  c,  pt,   1 /* row */,    1 /*col */);
-      
     }
     
     
@@ -447,18 +593,9 @@ public class PenteGameBoard extends JPanel implements MouseListener {
 
     }
     
-    protected ImageIcon createImageIcon(String f) {
-        boolean ok = false;
-        ImageIcon ii = null;
-        try {
-            ii = new ImageIcon(getClass().getResource(f));
-         
-        } catch(Exception e) {
-             System.out.println("Problem in loading " 
-                  + f + " in createImageIcon...");
-        }
-       return ii;
+    //exposing or allowing access to the Gameboard
+    public PenteBoardSquare[][] getBoard() {
+        return gameBoard;
     }
-    
 
 }

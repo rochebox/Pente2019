@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -10,6 +11,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -19,7 +21,8 @@ public class PenteScore extends JPanel implements ActionListener{
     
     //Data
     //Height Normally is 722
-    private JLabel p1Name, p2Name;
+    private JLabel p1Name = new JLabel( "              ");
+    private JLabel p2Name = new JLabel("              ");
     private JTextField p1Captures, p2Captures;
     private JTextField whoseTurnField;
     
@@ -34,6 +37,8 @@ public class PenteScore extends JPanel implements ActionListener{
     private Font myFont;
     private Color bBlack = new Color(5, 11, 91);
     private PenteGameBoard myBoard = null;
+    
+    private boolean firstGame = true;  
    
     public PenteScore(int w, int h) {
         
@@ -178,11 +183,18 @@ public class PenteScore extends JPanel implements ActionListener{
         
         if(whichPlayer == PenteGameBoard.BLACKSTONE) {
            p1Captures.setText( Integer.toString(c));
+           Rectangle r = p1Captures.getVisibleRect();
+           p1Captures.paintImmediately(r);
+             
         } else {
            p2Captures.setText( Integer.toString(c));
+           Rectangle r = p2Captures.getVisibleRect();
+           p2Captures.paintImmediately(r);
         }
         
-        repaint();
+        //p1Captures.repaint();
+        //p2Captures.repaint();
+        
     }
     
     
@@ -205,6 +217,14 @@ public class PenteScore extends JPanel implements ActionListener{
             int cLoc = p2Name.getText().indexOf(":");
             String n = p2Name.getText().substring(cLoc + 2, p2Name.getText().length());
             whoseTurnField.setText("It's " + n + "'s Turn Now");
+            
+        }
+        
+        if(firstGame) {
+            whoseTurnField.repaint();
+        } else  {
+            Rectangle r = whoseTurnField.getVisibleRect();
+            whoseTurnField.paintImmediately(r);
         }
         
     }
@@ -219,8 +239,14 @@ public class PenteScore extends JPanel implements ActionListener{
         // TODO Auto-generated method stub
         
         //System.out.println("Hi clicked me!!!!");
+        JOptionPane.showMessageDialog(null, "OK starting new game!");
+        firstGame = false;
         if(myBoard != null) myBoard.startNewGame(false); //If you are clicking new game you already have your players
         
-    }    
+    } 
+    
+    public void paintASAP() {
+        this.paintImmediately(0,0,this.spWidth, spHeight);
+    }
 
 }
