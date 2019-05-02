@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class ComputerMoveGenerator {
     
@@ -29,6 +30,13 @@ public class ComputerMoveGenerator {
         System.out.println("Computer is playing as player " + myStone);
     }
     
+    public void sortDefPriorities() {
+        //Here we are going to sort the priorities..
+        Comparator<CMObject>  compareByPriority = (CMObject o1, CMObject o2) ->
+        o1.getPriorityInt().compareTo( o2.getPriorityInt() );
+        
+    }
+    
     public int[] getComputeMove() {
         //Initializing stuff...
         int[] newMove = new int[2];
@@ -40,6 +48,8 @@ public class ComputerMoveGenerator {
         
         //Find all your moves...
         findDefMoves();  //dMoves will be filled
+        sortDefPriorities();
+        
         findOffMoves();
         
         if(dMoves.size() > 0) {
@@ -75,8 +85,10 @@ public class ComputerMoveGenerator {
         for(int row = 0; row < PenteGameBoard.NUM_SQUARES_SIDE; row++ ) { 
             for(int col = 0; col < PenteGameBoard.NUM_SQUARES_SIDE; col++) {
                 if(myGame.getBoard()[row][col].getState() == myStone * -1) {
+                    
+                    findTwoDef(row, col);
                     findOneDef(row, col);
-                    // findTwoDef(row, col);
+                    
                     // findThreeDef(row, col);
                     // findFourDef(row, col);
                 }
