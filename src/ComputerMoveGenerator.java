@@ -33,7 +33,7 @@ public class ComputerMoveGenerator {
     public void sortDefPriorities() {
         //Here we are going to sort the priorities..
         Comparator<CMObject>  compareByPriority = (CMObject o1, CMObject o2) ->
-        o1.getPriorityInt().compareTo( o2.getPriorityInt() );
+        o1.getPriority().compareTo( o2.getPriority() );
         
     }
     
