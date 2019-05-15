@@ -11,8 +11,8 @@ public class PenteGameRunner {
     public static void main(String[] args) {
         // TODO Auto-generated method stub
         
-        int gWidth = 19*35;
-        int gHeight = 19*35;
+        int gWidth = 19*25;
+        int gHeight = 19*25;
         int sbWidth = (int)(gWidth * 0.50);
         
         JFrame theGame = new JFrame("Play Pente!!");   

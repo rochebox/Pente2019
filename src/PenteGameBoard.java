@@ -18,7 +18,7 @@ public class PenteGameBoard extends JPanel implements MouseListener {
     public static final int PLAYER1_TURN = 1;
     public static final int PLAYER2_TURN = -1;
     public static final int MAX_CAPTURES = 5;
-    public static final int SLEEP_TIME = 200;
+    public static final int SLEEP_TIME = 750;
     
     private int bWidth, bHeight;
     
@@ -181,32 +181,32 @@ public class PenteGameBoard extends JPanel implements MouseListener {
     
     public void changePlayerTurn() {
         playerTurn *= -1;
-        System.out.println("Its now the turn of: " + playerTurn);
+        //System.out.println("Its now the turn of: " + playerTurn);
         myScoreBoard.setPlayerTurn(playerTurn);
        
     }
     
     public boolean fiveInARow(int whichPlayer) {
         boolean isFive = false;
-        System.out.println("In top of fiveInARow and isFive is " + isFive);
+        //System.out.println("In top of fiveInARow and isFive is " + isFive);
         
         //we will write this ...now before lunch
         //FOR EVERY SQUARE ON THE BOARD....
         for(int row = 0; row < NUM_SQUARES_SIDE; row++ ) { 
             for(int col = 0; col < NUM_SQUARES_SIDE; col++) {
-                System.out.println("In fiveInRow, looking at [" + row + ", " + col + "]");
+                //System.out.println("In fiveInRow, looking at [" + row + ", " + col + "]");
                 for(int rL = -1; rL <= 1; rL++) { 
                     for(int uD = -1; uD <= 1; uD++) {
                         if(fiveCheck( row,  col, whichPlayer,   rL /* row */,  uD /*col */)) {
-                            System.out.println("In fiveInRow, found a 5 at [" + row + ", " + col + "]");
-                            System.out.println("FiveCheck is returning  true");
+                            //System.out.println("In fiveInRow, found a 5 at [" + row + ", " + col + "]");
+                            //System.out.println("FiveCheck is returning  true");
                             isFive = true;
                         }
                     }
                 }
             }
         }   
-        System.out.println("In bottom of fiveInARow and isFive is " + isFive);
+        //System.out.println("In bottom of fiveInARow and isFive is " + isFive);
         return isFive;
     }
     
@@ -256,7 +256,7 @@ public class PenteGameBoard extends JPanel implements MouseListener {
     
     
     public void checkForWin(int whichPlayer) {
-        System.out.println("At top of check for win for " + whichPlayer);
+        //System.out.println("At top of check for win for " + whichPlayer);
         //for player 1
         if(whichPlayer == this.PLAYER1_TURN) {
             if(this.p1Captures >= MAX_CAPTURES) {
@@ -267,7 +267,7 @@ public class PenteGameBoard extends JPanel implements MouseListener {
                 
             } else {
                 if(fiveInARow(whichPlayer)) {
-                    System.out.println("Back from  fiveInARow(); for P1 and its true");
+                    //System.out.println("Back from  fiveInARow(); for P1 and its true");
                     JOptionPane.showMessageDialog(null, "Congratulations: " 
                             + p1Name + " Wins!! with 5 in a row");
                     gameOver = true;
@@ -281,7 +281,7 @@ public class PenteGameBoard extends JPanel implements MouseListener {
                 gameOver = true;  
             } else {
                 if(fiveInARow(whichPlayer)) {
-                    System.out.println("Back from  fiveInARow(); for P2 and its true");
+                    //System.out.println("Back from  fiveInARow(); for P2 and its true");
                     JOptionPane.showMessageDialog(null, "Congratulations: " 
                             + p2Name + " Wins!! with 5 in a row");
                     gameOver = true;
@@ -329,7 +329,7 @@ public class PenteGameBoard extends JPanel implements MouseListener {
     public void checkForComputerMove(int whichPlayer) {
         
         if(whichPlayer == this.PLAYER1_TURN && this.player1IsComputer) {
-            System.out.println("PLAYER 1 is TAKING ITS TURN.....");
+            //System.out.println("PLAYER 1 is TAKING ITS TURN.....");
             int[] nextMove = this.p1ComputerPlayer.getComputeMove();
             int newR = nextMove[0];
             int newC = nextMove[1];
@@ -345,7 +345,7 @@ public class PenteGameBoard extends JPanel implements MouseListener {
             }
             
         } else if (whichPlayer == this.PLAYER2_TURN && this.player2IsComputer) {
-            System.out.println("PLAYER 2 is TAKING ITS TURN.....");
+            //System.out.println("PLAYER 2 is TAKING ITS TURN.....");
             int[] nextMove = this.p2ComputerPlayer.getComputeMove();
             int newR = nextMove[0];
             int newC = nextMove[1];
@@ -412,7 +412,7 @@ public class PenteGameBoard extends JPanel implements MouseListener {
             if(gameBoard[r+upDown][c+rightLeft].getState() == pt*-1) {
                 if(gameBoard[r + (upDown*2)][c+(rightLeft*2)].getState() == pt*-1) {
                     if(gameBoard[r + (upDown*3)][c+ (rightLeft*3)].getState() == pt) {
-                        System.out.println("IT'S A horizontal CAPTURE!!!" + rightLeft);
+                        //System.out.println("IT'S A horizontal CAPTURE!!!" + rightLeft);
                         //Now let's take them off the board
                         gameBoard[r + upDown][c+rightLeft].setState(EMPTY);
                         gameBoard[r + (upDown*2)][c+(rightLeft*2)].setState(EMPTY);
@@ -431,7 +431,7 @@ public class PenteGameBoard extends JPanel implements MouseListener {
         
             return cap; 
         } catch(ArrayIndexOutOfBoundsException e) {
-            System.out.println("You have an error " +   e.toString());
+            //System.out.println("You have an error " +   e.toString());
             return false;
         }
     }
@@ -596,6 +596,12 @@ public class PenteGameBoard extends JPanel implements MouseListener {
     //exposing or allowing access to the Gameboard
     public PenteBoardSquare[][] getBoard() {
         return gameBoard;
+    }
+    
+    //getMethod for the darkStone variable getter method
+    //accessor method
+    public boolean getDarkStoneMove2Taken() {
+        return darkStoneMove2Taken;
     }
 
 }

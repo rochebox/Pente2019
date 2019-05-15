@@ -1,23 +1,29 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 
 public class ComputerMoveGenerator {
     
     public static final int OFFENSE = 1;
     public static final int DEFENSE = -1;
-    public static final int ONE_IN_ROW_DEF = 1;
-    public static final int TWO_IN_ROW_DEF = 2;
-    public static final int TWO_IN_ROW_OPEN = 3;
-    public static final int TWO_IN_ROW_CAP = 4;  // We will adjust
+    public static final int NOT_ON_BOARD = -100;
+    public static final int ONE_IN_ROW_DEF = 10;
+    public static final int TWO_IN_ROW_DEF = 20;
+    public static final int TWO_IN_ROW_OPEN = 21;
+    public static final int TWO_IN_ROW_CAP = 22;  // We will adjust
     
+    public static final int THREE_IN_ROW_ENCLOSE = 30;
+    public static final int THREE_1_1_1_EXTREME_DEF = 31;
+    public static final int THREE_IN_ROW_OPEN_DEF = 32;
+    public static final int THREE_1_2_EXTREME_DEF = 32;
+    public static final int THREE_2_1_EXTREME_DEF = 33;
     
     
     PenteGameBoard myGame;
     int myStone;
     
-    
-    ArrayList<CMObject> oMoves = new ArrayList<CMObject>();
-    ArrayList<CMObject> dMoves = new ArrayList<CMObject>();
+  
+    ArrayList<CMObject> allMoves = new ArrayList<CMObject>();
     
     //probably need arrayLists
    
@@ -30,11 +36,14 @@ public class ComputerMoveGenerator {
         System.out.println("Computer is playing as player " + myStone);
     }
     
-    public void sortDefPriorities() {
+    public void sortPriorities() {
         //Here we are going to sort the priorities..
-        Comparator<CMObject>  compareByPriority = (CMObject o1, CMObject o2) ->
-        o1.getPriority().compareTo( o2.getPriority() );
+        //Comparator<CMObject>  compareByPriority = (CMObject o1, CMObject o2) ->
+        //o1.getPriorityInt().compareTo( o2.getPriorityInt() );   
         
+        Collections.sort(allMoves);
+
+
     }
     
     public int[] getComputeMove() {
@@ -43,30 +52,70 @@ public class ComputerMoveGenerator {
         newMove[0] = -1;
         newMove[1] = -1;
         
-        dMoves.clear();
-        oMoves.clear();
+        allMoves.clear();
+        
         
         //Find all your moves...
-        findDefMoves();  //dMoves will be filled
-        sortDefPriorities();
+        findMoves();  //dMoves will be filled
+        sortPriorities();
         
-        findOffMoves();
+        printPriorities();
+        System.out.println();
         
-        if(dMoves.size() > 0) {
+        
+       
+        
+        if(allMoves.size() > 0) {
             //Testing
-            int whichOne = (int)(Math.random() * dMoves.size());
-            CMObject ourMove = dMoves.get(whichOne);
+            //int whichOne = (int)(Math.random() * dMoves.size());
+            CMObject ourMove; 
+            
+            if(allMoves.get(0).getPriority() <= this.ONE_IN_ROW_DEF ) {
+                ourMove = allMoves.get((int)(Math.random()*allMoves.size()));
+            } else {
+                ourMove = allMoves.get(0);
+            }
             newMove[0] = ourMove.getRow();
             newMove[1] = ourMove.getCol();
             
         } else {
-            newMove = generateRandomMove();
+            //Special Situation for rule against inner move on first move
+            if(myStone == PenteGameBoard.BLACKSTONE && myGame.getDarkStoneMove2Taken() == false) {
+                
+                System.out.println("In getComputerMove(), myStone is DARK and there is DSProblem");
+               
+               int newBStoneProbRow = -1;
+               int newBStoneProbCol = -1;
+               
+               int innerSafeSquareSideLen = PenteGameBoard.INNER_END - PenteGameBoard.INNER_START + 1;
+               
+               System.out.println("InnerSafeSquareSideLen = " + innerSafeSquareSideLen);
+               System.out.println("InnerSafeSquareSideLen + 1 = " + (innerSafeSquareSideLen + 1) );
+               System.out.println("InnerSafeSquareSideLen + 2 = " + (innerSafeSquareSideLen + 2) );
+               while(myGame.getDarkStoneMove2Taken() == false) {
+                 // too much  newBStoneProbRow = (int)(Math.random() * PenteGameBoard.NUM_SQUARES_SIDE);
+                   newBStoneProbRow = (int) (Math.random() * (innerSafeSquareSideLen + 2)  )
+                                   + (innerSafeSquareSideLen + 1);
+                   
+                   newBStoneProbCol = (int) (Math.random() * (innerSafeSquareSideLen + 2)  )
+                           + (innerSafeSquareSideLen + 1);
+                   
+                   System.out.println("To Solve Problem, trying: [" + 
+                           newBStoneProbRow + ", " + newBStoneProbCol + "]"
+                                   );
+                   myGame.darkSquareProblem(newBStoneProbRow, newBStoneProbCol);
+               }
+               newMove[0] = newBStoneProbRow;
+               newMove[1] = newBStoneProbCol;
+               
+            } else {
+                
+                System.out.println("HI I'm just generating a random move");
+                newMove = generateRandomMove();
+            }
         }
         
-       
-        // TON OF PROGAMMING TO PLAY THE GAME
-        // LOTS
-        // I mean lots.....
+    
         
         
         
@@ -80,16 +129,36 @@ public class ComputerMoveGenerator {
         return newMove;
     }
     
-    public void findDefMoves() {
+    public void printPriorities() {
+
+
+
+        for(CMObject m: allMoves){    //loop for iterables
+             System.out.println(m);
+        }
+    }
+    
+    public void findMoves() {
         
         for(int row = 0; row < PenteGameBoard.NUM_SQUARES_SIDE; row++ ) { 
             for(int col = 0; col < PenteGameBoard.NUM_SQUARES_SIDE; col++) {
                 if(myGame.getBoard()[row][col].getState() == myStone * -1) {
                     
+                    findThreeDefExtreme1_2(row, col);
+                    findThreeDefExtreme1_1_1(row, col);
+                    findThreeDef(row, col);
                     findTwoDef(row, col);
                     findOneDef(row, col);
+         
                     
-                    // findThreeDef(row, col);
+                    // findFourDef(row, col);
+                }
+                
+                if(myGame.getBoard()[row][col].getState() == myStone) {
+                    
+                    
+                   // findOneOff(row, col);
+ 
                     // findFourDef(row, col);
                 }
                
@@ -97,6 +166,9 @@ public class ComputerMoveGenerator {
         }
         
     } 
+    
+    
+    
     
     //this finds all instances of possible moves to block one stone
     public void findOneDef(int r, int c) {
@@ -107,12 +179,13 @@ public class ComputerMoveGenerator {
                 try {
                     
                     if(myGame.getBoard()[r + rL][c + uD].getState() == PenteGameBoard.EMPTY ) {
-                        CMObject newMove = new CMObject();
-                        newMove.setRow(r + rL);
-                        newMove.setCol(c + uD);
-                        newMove.setPriority(ONE_IN_ROW_DEF);
-                        newMove.setMoveType(DEFENSE);
-                        dMoves.add(newMove);
+                        this.setMove(r + rL, c + uD, DEFENSE);
+//                        CMObject newMove = new CMObject();
+//                        newMove.setRow(r + rL);
+//                        newMove.setCol(c + uD);
+//                        newMove.setPriority(ONE_IN_ROW_DEF);
+//                        newMove.setMoveType(DEFENSE);
+//                        allMoves.add(newMove);
                         
                     }
                     
@@ -134,16 +207,203 @@ public class ComputerMoveGenerator {
         return isOn;
     }
     
-    public void setDefMove(int r, int c, int p) {
-        CMObject newMove = new CMObject();
-        newMove.setRow(r);
-        newMove.setCol(c);
-        newMove.setPriority(p);
-        newMove.setMoveType(DEFENSE);
-        dMoves.add(newMove);
+    //formerly setDefMove...
+    public void setMove(int r, int c, int p) {
+        
+        //System.out.println(" in set  move the dark stone move is " + myGame.getDarkStoneMove2Taken());
+        
+        if(myStone == PenteGameBoard.BLACKSTONE && myGame.getDarkStoneMove2Taken() == false) {
+            
+            if(myGame.darkSquareProblem(r, c) == false) {
+                CMObject newMove = new CMObject();
+                newMove.setRow(r);
+                newMove.setCol(c);
+                newMove.setPriority(p);
+                newMove.setMoveType(DEFENSE);
+                allMoves.add(newMove);
+            }  else {
+                System.out.println("There is a dark square problem: ");
+                System.out.println("\tmove at [" + r +", " + c + "] is being thrown out");
+            }
+            
+        } else {
+            
+            //the whole game moves like it used to except for one move....
+            CMObject newMove = new CMObject();
+            newMove.setRow(r);
+            newMove.setCol(c);
+            newMove.setPriority(p);
+            newMove.setMoveType(DEFENSE);
+            allMoves.add(newMove);
+        }
         
     }
+    
+    public void findThreeDef(int r, int c) {
+         findThreeDefNormal( r,  c );
+         findThreeDefExtreme1_2( r,  c );
         
+    }
+    
+    
+    public void findThreeDefNormal(int r, int c) {
+        
+      //We start here on Wed
+        //This runs in the 8 directions (9)
+        for(int rL = -1; rL <= 1; rL++) {
+            for(int uD = -1; uD <= 1; uD++) {
+                try {
+                    
+                    if(myGame.getBoard()[r + rL][c + uD].getState() == myStone * -1 ) {
+                        if(myGame.getBoard()[r + (rL *2)][c + (uD*2)].getState() == myStone * -1 ) {
+                            if(myGame.getBoard()[r + (rL *3)][c + (uD*3)].getState() == PenteGameBoard.EMPTY ) {
+                        
+                                //if r-rl is the wall 
+                                if(isOnBoard(r-rL, c-uD) == false) {
+                                    setMove(
+                                            r + (rL* 3), 
+                                            c + (uD * 3),
+                                            THREE_IN_ROW_ENCLOSE );
+                                   
+                                } else if (
+                                        myGame.getBoard()[r - rL][c -uD].getState() == PenteGameBoard.EMPTY  
+                                        ) {
+                                    setMove(
+                                            r + (rL* 3), 
+                                            c + (uD * 3),
+                                            this.THREE_IN_ROW_OPEN_DEF);
+                                    
+                                } else if (
+                                        myGame.getBoard()[r - rL][c -uD].getState() == myStone 
+                                        ){
+                                    setMove(
+                                            r + (rL* 3), 
+                                            c + (uD * 3),
+                                            this.THREE_IN_ROW_ENCLOSE);
+                                    
+                                }
+                            }
+                        }
+                    }
+                }
+                            
+                              
+                 catch (ArrayIndexOutOfBoundsException e) {
+                    System.out.println("Off the board in findOneDef at [" + r + "," + c + "]");
+                }
+                
+            }
+        }   
+    }
+    
+    
+    
+    public void findThreeDefExtreme1_2(int r, int c) {
+        
+        //We start here on Wed
+          //This runs in the 8 directions (9)
+          for(int rL = -1; rL <= 1; rL++) {
+              for(int uD = -1; uD <= 1; uD++) {
+                  try {
+                      
+                      if(myGame.getBoard()[r + rL][c + uD].getState() == PenteGameBoard.EMPTY ) {
+                          if(myGame.getBoard()[r + (rL *2)][c + (uD*2)].getState() == myStone * -1 ) {
+                              if(myGame.getBoard()[r + (rL *3)][c + (uD*3)].getState() == myStone * -1 ) {
+                          
+                                  setMove(
+                                          r + (rL), 
+                                          c + (uD),
+                                          this.THREE_1_2_EXTREME_DEF);
+                                  
+                              }
+                          }
+                      }
+                  }
+                              
+                                
+                   catch (ArrayIndexOutOfBoundsException e) {
+                      System.out.println("Off the board in findOneDef at [" + r + "," + c + "]");
+                  }
+                  
+              }
+          }    
+      }
+    
+    
+public void findThreeDefExtreme2_1(int r, int c) {
+        
+        //We start here on Wed
+          //This runs in the 8 directions (9)
+          for(int rL = -1; rL <= 1; rL++) {
+              for(int uD = -1; uD <= 1; uD++) {
+                  try {
+                      
+                      if(myGame.getBoard()[r + rL][c + uD].getState() == myStone * -1 ) {
+                          if(myGame.getBoard()[r + (rL *2)][c + (uD*2)].getState() == PenteGameBoard.EMPTY  ) {
+                              if(myGame.getBoard()[r + (rL *3)][c + (uD*3)].getState() == myStone * -1 ) {
+                          
+                                  setMove(
+                                          r + (rL * 2), 
+                                          c + (uD * 2),
+                                          this.THREE_2_1_EXTREME_DEF);
+                                  
+                              }
+                          }
+                      }
+                  }
+                              
+                                
+                   catch (ArrayIndexOutOfBoundsException e) {
+                      System.out.println("Off the board in findOneDef at [" + r + "," + c + "]");
+                  }
+                  
+              }
+          }    
+      }
+
+
+public void findThreeDefExtreme1_1_1(int r, int c) {
+    
+    //We start here on Wed
+      //This runs in the 8 directions (9)
+      for(int rL = -1; rL <= 1; rL++) {
+          for(int uD = -1; uD <= 1; uD++) {
+              try {
+                  
+                  if(myGame.getBoard()[r + rL][c + uD].getState() == PenteGameBoard.EMPTY ) {
+                      if(myGame.getBoard()[r + (rL *2)][c + (uD*2)].getState() == myStone * -1 ) {
+                          if(myGame.getBoard()[r + (rL*3)][c + (uD*3)].getState() == PenteGameBoard.EMPTY ) {
+                              if(myGame.getBoard()[r + (rL *4)][c + (uD*4)].getState() == myStone * -1 ) {
+                      
+                                if((int)(Math.random()*100) < 50) {
+                                    setMove(
+                                            r + (rL), 
+                                            c + (uD),
+                                            this.THREE_1_1_1_EXTREME_DEF);
+                                } else {
+                                    setMove(
+                                            r + (rL*3), 
+                                            c + (uD*3),
+                                            this.THREE_1_1_1_EXTREME_DEF);
+                                    
+                                }
+                              
+                              
+                              }
+                          }
+                      }
+                  }
+              }
+                          
+                            
+               catch (ArrayIndexOutOfBoundsException e) {
+                  System.out.println("Off the board in findOneDef at [" + r + "," + c + "]");
+              }
+              
+          }
+      }    
+  }
+    
         public void findTwoDef(int r, int c) {
             //We start here on Wed
             //This runs in the 8 directions (9)
@@ -156,7 +416,7 @@ public class ComputerMoveGenerator {
                         
                                 //if r-rl is the wall 
                                 if(isOnBoard(r-rL, c-uD) == false) {
-                                    setDefMove(
+                                    setMove(
                                             r + (rL* 2), 
                                             c + (uD * 2),
                                             TWO_IN_ROW_DEF );
@@ -164,7 +424,7 @@ public class ComputerMoveGenerator {
                                 } else if (
                                         myGame.getBoard()[r - rL][c -uD].getState() == PenteGameBoard.EMPTY  
                                         ) {
-                                    setDefMove(
+                                    setMove(
                                             r + (rL* 2), 
                                             c + (uD * 2),
                                             this.TWO_IN_ROW_OPEN );
@@ -172,7 +432,7 @@ public class ComputerMoveGenerator {
                                 } else if (
                                         myGame.getBoard()[r - rL][c -uD].getState() == myStone 
                                         ){
-                                    setDefMove(
+                                    setMove(
                                             r + (rL* 2), 
                                             c + (uD * 2),
                                             this.TWO_IN_ROW_CAP);
@@ -194,12 +454,12 @@ public class ComputerMoveGenerator {
                                 
                                 
                                 
-                                CMObject newMove = new CMObject();
-                                newMove.setRow(r + (rL* 2));
-                                newMove.setCol(c + (uD * 2));
-                                newMove.setPriority(ONE_IN_ROW_DEF);
-                                newMove.setMoveType(DEFENSE);
-                                dMoves.add(newMove);
+//                                CMObject newMove = new CMObject();
+//                                newMove.setRow(r + (rL* 2));
+//                                newMove.setCol(c + (uD * 2));
+//                                newMove.setPriority(ONE_IN_ROW_DEF);
+//                                newMove.setMoveType(DEFENSE);
+//                                dMoves.add(newMove);
                             
                             }
                         }
@@ -244,13 +504,24 @@ public class ComputerMoveGenerator {
     
    public void sleepForAMove() throws InterruptedException {
         
-        Thread currThread = Thread.currentThread();
-        
+        Thread currThread = Thread.currentThread(); 
         currThread.sleep(PenteGameBoard.SLEEP_TIME);
        
-        
     }
     
-    
+  
+   public void goOutSevenAndSee(int r, int c, int rL, int uD) {
+       int[] goOut = new int[7];
+       
+       for(int i = 0; i < 7; i++) {
+           if( !this.isOnBoard(r + (rL * i), c + (uD * i)) ) {
+               goOut[i] = this.NOT_ON_BOARD;
+           } else {
+               PenteBoardSquare[][] b = myGame.getBoard();
+               goOut[i] = b[r + (rL * i)][c + (uD * i)].getState();
+           }
+       }
+          
+   }
     
 }
