@@ -132,7 +132,7 @@ public class PenteGameBoard extends JPanel implements MouseListener {
         p1Captures = 0;
         p2Captures = 0;
         gameOver = false;
-        
+        darkStoneMove2Taken = false;
         
  
         if(firstGame) {
@@ -384,12 +384,37 @@ public class PenteGameBoard extends JPanel implements MouseListener {
            {
                         dsp = true;     
            } else {
+               System.out.println(
+                       "in darkSquareProblem [" + r + ", " + c + "]" +
+                       " and about to set darkStoneMove2Taken to TRUE");
                darkStoneMove2Taken = true;
            }
         }        
 
         return dsp;
     }
+    
+    
+ public boolean darkSquareProblemComputerMoveList(int r, int c) {
+        
+        boolean dsp = false;
+        
+        if((!darkStoneMove2Taken) && (playerTurn == BLACKSTONE)) 
+        {
+           if( (r >= INNER_START && r <= INNER_END) && (c >= INNER_START && c <= INNER_END))
+           {
+                        dsp = true;     
+           } else {
+               
+              // darkStoneMove2Taken = true;
+           }
+        }        
+
+        return dsp;
+    }
+    
+    
+
     
     //This is a big routine to check for captures
     public void checkForAllCaptures(int r, int c, int pt) {
