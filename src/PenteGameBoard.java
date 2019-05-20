@@ -328,36 +328,38 @@ public class PenteGameBoard extends JPanel implements MouseListener {
     
     public void checkForComputerMove(int whichPlayer) {
         
-        if(whichPlayer == this.PLAYER1_TURN && this.player1IsComputer) {
-            //System.out.println("PLAYER 1 is TAKING ITS TURN.....");
-            int[] nextMove = this.p1ComputerPlayer.getComputeMove();
-            int newR = nextMove[0];
-            int newC = nextMove[1];
-            gameBoard[newR][newC].setState(playerTurn);
-            this.paintImmediately(0, 0, bWidth,  bHeight);  //added *****
-            //this.repaint();
-            checkForAllCaptures(newR, newC, playerTurn);
-            this.repaint();
-            checkForWin(playerTurn);
-            if(!gameOver) {
-                this.changePlayerTurn();
-                checkForComputerMove(playerTurn);
-            }
-            
-        } else if (whichPlayer == this.PLAYER2_TURN && this.player2IsComputer) {
-            //System.out.println("PLAYER 2 is TAKING ITS TURN.....");
-            int[] nextMove = this.p2ComputerPlayer.getComputeMove();
-            int newR = nextMove[0];
-            int newC = nextMove[1];
-            gameBoard[newR][newC].setState(playerTurn);
-            this.paintImmediately(0, 0, bWidth,  bHeight);  //added *****
-            //this.repaint();
-            checkForAllCaptures(newR, newC, playerTurn);
-            //this.repaint();
-            checkForWin(playerTurn);
-            if(!gameOver) {
-                this.changePlayerTurn();
-                checkForComputerMove(playerTurn);
+        if(!gameOver) {
+            if(whichPlayer == this.PLAYER1_TURN && this.player1IsComputer) {
+                //System.out.println("PLAYER 1 is TAKING ITS TURN.....");
+                int[] nextMove = this.p1ComputerPlayer.getComputeMove();
+                int newR = nextMove[0];
+                int newC = nextMove[1];
+                gameBoard[newR][newC].setState(playerTurn);
+                this.paintImmediately(0, 0, bWidth,  bHeight);  //added *****
+                //this.repaint();
+                checkForAllCaptures(newR, newC, playerTurn);
+                this.repaint();
+                checkForWin(playerTurn);
+                if(!gameOver) {
+                    this.changePlayerTurn();
+                    checkForComputerMove(playerTurn);
+                }
+                
+            } else if (whichPlayer == this.PLAYER2_TURN && this.player2IsComputer) {
+                //System.out.println("PLAYER 2 is TAKING ITS TURN.....");
+                int[] nextMove = this.p2ComputerPlayer.getComputeMove();
+                int newR = nextMove[0];
+                int newC = nextMove[1];
+                gameBoard[newR][newC].setState(playerTurn);
+                this.paintImmediately(0, 0, bWidth,  bHeight);  //added *****
+                //this.repaint();
+                checkForAllCaptures(newR, newC, playerTurn);
+                //this.repaint();
+                checkForWin(playerTurn);
+                if(!gameOver) {
+                    this.changePlayerTurn();
+                    checkForComputerMove(playerTurn);
+                }
             }
         }
         this.repaint();
@@ -384,9 +386,9 @@ public class PenteGameBoard extends JPanel implements MouseListener {
            {
                         dsp = true;     
            } else {
-               System.out.println(
-                       "in darkSquareProblem [" + r + ", " + c + "]" +
-                       " and about to set darkStoneMove2Taken to TRUE");
+//               System.out.println(
+//                       "in darkSquareProblem [" + r + ", " + c + "]" +
+//                       " and about to set darkStoneMove2Taken to TRUE");
                darkStoneMove2Taken = true;
            }
         }        
@@ -627,6 +629,20 @@ public class PenteGameBoard extends JPanel implements MouseListener {
     //accessor method
     public boolean getDarkStoneMove2Taken() {
         return darkStoneMove2Taken;
+    }
+    
+    
+    public boolean getGameOver() {
+        return gameOver;
+    }
+    
+    public int getPlayerCaptures(int whichPlayer) {
+        if(whichPlayer == this.BLACKSTONE) {
+            return p1Captures;
+        } else {
+            return p2Captures;
+        }
+        
     }
 
 }
